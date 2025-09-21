@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Terminal — Web Demo</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #2b2b2b;
+        --win: #000;
+        --header: #1e1e1e;
+        --muted: #9aa0a6;
+        --green: #00c853;
+        --white: #e6eef3;
+        --status: #1a1a1a;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: "JetBrains Mono", monospace;
+        background: var(--bg);
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        padding: 10px;
+        overflow: auto;
+      }
+      #matrix {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        background: black;
+      }
+      .terminal-window {
+        width: 920px;
+        max-width: 100%;
+        min-height: 600px;
+        background: var(--win);
+        border-radius: 12px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6),
+          inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        z-index: 1;
+        position: relative;
+      }
+      .titlebar {
+        height: 30px;
+        background: var(--header);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      }
+      .controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        width: 72px;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+      }
+      .dot.close {
+        background: #ff5f56;
+      }
+      .dot.min {
+        background: #ffbd2e;
+      }
+      .dot.max {
+        background: #27ca3f;
+      }
+      .title {
+        flex: 1;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        user-select: none;
+      }
+      .terminal-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(180deg, #000 0%, #050505 100%);
+      }
+      .output {
+        flex: 1;
+        padding: 18px;
+        overflow-y: auto;
+        word-wrap: break-word;
+        color: var(--green);
+        font-size: 14px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+      .input-area {
+        padding: 12px 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.02);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: transparent;
+      }
+      .prompt {
+        color: var(--green);
+        font-weight: 700;
+        min-width: 170px;
+        font-size: 13px;
+      }
+      .cmd {
+        flex: 1;
+        background: transparent;
+        border: 0;
+        outline: none;
+        color: var(--white);
+        font-size: 14px;
+        caret-color: var(--green);
+        font-family: inherit;
+      }
+      .cmd::placeholder {
+        color: rgba(255, 255, 255, 0.25);
+      }
+      .statusbar {
+        height: 30px;
+        background: var(--status);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        color: var(--muted);
+        font-size: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.02);
+      }
+      .output::-webkit-scrollbar {
+        width: 10px;
+      }
+      .output::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 6px;
+      }
+      .output::-webkit-scrollbar-track {
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="matrix"></canvas>
+    <div class="terminal-window">
+      <div class="titlebar">
+        <div class="controls">
+          <div class="dot close"></div>
+          <div class="dot min"></div>
+          <div class="dot max"></div>
+        </div>
+
+        <div class="title">Python Terminal</div>
+      </div>
+      <div class="terminal-body">
+        <!-- Inside the <div class="terminal-body">, before commands -->
+        <div class="output" id="terminal-output">
+          <div class="welcome">
+            <pre style="color: #ffffff">
+██████╗ ██╗   ██╗████████╗██╗  ██╗ ██████╗ ███╗   ██╗
+██╔══██╗╚██╗ ██╔╝╚══██╔══╝██║  ██║██╔═══██╗████╗  ██║
+██████╔╝ ╚████╔╝    ██║   ███████║██║   ██║██╔██╗ ██║ 
+██╔═══╝   ╚██╔╝     ██║   ██╔══██║██║   ██║██║╚██╗██║
+██║        ██║      ██║   ██║  ██║╚██████╔╝██║ ╚████║
+╚═╝        ╚═╝      ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝ <h1> — THE LANGUAGE OF INNOVATION</h1>
+</pre>
+          </div>
+        </div>
+
+        <div class="output" id="terminal-output"></div>
+        <div class="input-area">
+          <div class="prompt">user@python-terminal:~$</div>
+          <input
+            id="command-input"
+            class="cmd"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Type commands: help, clear, mkdir, cd, ls, touch, rm, rmdir, echo, pwd, exit"
+          />
+        </div>
+      </div>
+      <div class="statusbar">
+        <div id="status-text">Ready</div>
+        <div id="current-directory">/home/user</div>
+      </div>
+    </div>
+
+    <script>
+      // Matrix background
+      const canvas = document.getElementById("matrix"),
+        ctx = canvas.getContext("2d");
+      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth;
+      const letters = "0123456789".split(""),
+        fontSize = 16,
+        columns = Math.floor(canvas.width / fontSize),
+        drops = Array.from({ length: columns }, () => 1);
+      function drawMatrix() {
+        ctx.fillStyle = "rgba(0,0,0,0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#FF0000";
+        ctx.font = fontSize + "px JetBrains Mono";
+        for (let i = 0; i < drops.length; i++) {
+          ctx.fillText(
+            letters[Math.floor(Math.random() * letters.length)],
+            i * fontSize,
+            drops[i] * fontSize
+          );
+          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+            drops[i] = 0;
+          drops[i]++;
+        }
+      }
+      setInterval(drawMatrix, 50);
+      window.addEventListener("resize", () => {
+        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth;
+      });
+
+      // Terminal logic with in-memory filesystem
+      const output = document.getElementById("terminal-output"),
+        input = document.getElementById("command-input");
+      const status = document.getElementById("status-text"),
+        cwdElem = document.getElementById("current-directory");
+
+      let currentDir = "/home/user",
+        filesystem = { home: { user: {} } };
+      let history = [],
+        hIndex = -1;
+
+      function appendLine(text, type = "line") {
+        const el = document.createElement("div");
+        el.className = type;
+        el.textContent = text;
+        output.appendChild(el);
+        output.scrollTop = output.scrollHeight;
+      }
+
+      function runCommand(cmdRaw) {
+        if (!cmdRaw) return;
+        const cmd = cmdRaw.trim();
+        appendLine(`user@python-terminal:~$ ${cmd}`, "command");
+        status.textContent = "Executing...";
+        setTimeout(() => {
+          const args = cmd.split(" ").filter((s) => s);
+          const command = args[0];
+          if (command === "help") {
+            appendLine(
+              "Commands: help, clear, pwd, ls, mkdir, cd, touch, rm, rmdir, echo, exit"
+            );
+          } else if (command === "clear") {
+            output.innerHTML = "";
+          } else if (command === "pwd") {
+            appendLine(currentDir);
+          } else if (command === "ls") {
+            let dir = getDir(currentDir);
+            if (dir) appendLine(Object.keys(dir).join("  "));
+            else appendLine("Directory not found", "error");
+          } else if (command === "mkdir") {
+            if (args[1]) {
+              let dir = getDir(currentDir);
+              dir[args[1]] = {};
+              appendLine(`Directory created: ${args[1]}`);
+            } else appendLine("Usage: mkdir [dirname]", "error");
+          } else if (command === "rmdir") {
+            if (args[1]) {
+              let dir = getDir(currentDir);
+              if (dir[args[1]]) {
+                delete dir[args[1]];
+                appendLine(`Directory removed: ${args[1]}`);
+              } else appendLine("Directory not found", "error");
+            } else appendLine("Usage: rmdir [dirname]", "error");
+          } else if (command === "touch") {
+            if (args[1]) {
+              let dir = getDir(currentDir);
+              dir[args[1]] = "";
+              appendLine(`File created: ${args[1]}`);
+            } else appendLine("Usage: touch [filename]", "error");
+          } else if (command === "rm") {
+            if (args[1]) {
+              let dir = getDir(currentDir);
+              if (dir[args[1]] !== undefined) {
+                delete dir[args[1]];
+                appendLine(`Removed: ${args[1]}`);
+              } else appendLine("File not found", "error");
+            } else appendLine("Usage: rm [filename]", "error");
+          } else if (command === "cd") {
+            if (args[1]) {
+              if (args[1] === "..") {
+                currentDir =
+                  currentDir.substring(0, currentDir.lastIndexOf("/")) || "/";
+              } else {
+                let dir = getDir(currentDir);
+                if (dir[args[1]]) {
+                  currentDir = currentDir + "/" + args[1];
+                } else appendLine("Directory not found", "error");
+              }
+            }
+            cwdElem.textContent = currentDir;
+          } else if (command === "echo") {
+            appendLine(args.slice(1).join(" "));
+          } else if (command === "exit") {
+            output.innerHTML = "";
+            currentDir = "/home/user";
+            cwdElem.textContent = currentDir;
+            appendLine("Terminal cleared");
+          } else appendLine(`Unknown command: ${command}`, "error");
+          status.textContent = "Ready";
+        }, 100);
+      }
+
+      function getDir(path) {
+        const parts = path.split("/").filter((p) => p);
+        let dir = filesystem;
+        for (let p of parts) {
+          if (dir[p]) dir = dir[p];
+          else return null;
+        }
+        return dir;
+      }
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          history.push(input.value);
+          hIndex = history.length;
+          runCommand(input.value);
+          input.value = "";
+          e.preventDefault();
+        } else if (e.key === "ArrowUp") {
+          hIndex = Math.max(0, hIndex - 1);
+          input.value = history[hIndex] || "";
+          e.preventDefault();
+        } else if (e.key === "ArrowDown") {
+          hIndex = Math.min(history.length, hIndex + 1);
+          input.value = history[hIndex] || "";
+          e.preventDefault();
+        }
+      });
+    </script>
+  </body>
+</html>
